@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Articles</title>
+    <style>
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .article-container {
+            display: flex;
+            justify-content: flex-start;
+            padding: 0 3vw 0 3vw;
+            align-items: center;
+            flex-flow: row wrap;
+            margin-top: 2vw;
+            gap: 100px;
+        }
+
+        .article {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+{% include 'partials/navbar.twig' %}
+
+<div class="article-container">
+    {% for article in articles.get %}
+        <div class="article">
+            <img src="{{ article.picture }}" alt="{{ article.title }}">
+            <h3><a href="/articles/{{ article.id }}">{{ article.title }}</a></h3>
+            <p><small>{{ article.createdAt.format('Y-m-d H:i:s') }}</small></p>
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
