@@ -8,55 +8,34 @@ use App\Models\Article;
 use App\Collections\ArticleCollection;
 use App\Response;
 use App\RedirectResponse;
+use App\Services\Articles\DeleteArticleService;
+use App\Services\Articles\IndexArticleService;
+use App\Services\Articles\ShowArticleService;
+use App\Services\Articles\StoreArticleService;
+use App\Services\Articles\UpdateArticleService;
 use App\ViewResponse;
 use Carbon\Carbon;
 
-class ArticleController extends BaseController
+class ArticleController
 {
-
     public function index(): Response
     {
-        $articles = $this->database->createQueryBuilder()
-            ->select('*')
-            ->from('articles')
-            ->fetchAllAssociative();
+        $service = new IndexArticleService();
+        $articles = $service->execute();
 
-        $articlesCollection = new ArticleCollection();
-
-        foreach ($articles as $article) {
-            $articlesCollection->add(new Article(
-                $article['title'],
-                $article['description'],
-                $article['picture'],
-                $article['created_at'],
-                (int) $article['id'],
-                $article['updated_at']
-            ));
-        }
-
-        return new ViewResponse('articles/index', ['articles' => $articlesCollection]);
+        return new ViewResponse('articles/index', [
+            'articles' => $articles
+        ]);
     }
 
-
-    public function show($id): Response
+    public function show(int $id): Response
     {
-        $data = $this->database->createQueryBuilder()
-            ->select('*')
-            ->from('articles')
-            ->where('id = :id')
-            ->setParameter('id', $id)
-            ->fetchAssociative();
+        $service = new ShowArticleService();
+        $article = $service->execute($id);
 
-        $article = new Article(
-            $data['title'],
-            $data['description'],
-            $data['picture'],
-            $data['created_at'],
-            (int) $data['id'],
-            $data['updated_at']
-        );
-
-        return new ViewResponse('articles/show', ['article' => $article]);
+        return new ViewResponse('articles/show', [
+            'article' => $article
+        ]);
     }
 
     public function create(): Response
@@ -66,72 +45,48 @@ class ArticleController extends BaseController
 
     public function store(): RedirectResponse
     {
-        $this->database->createQueryBuilder()
-            ->insert('articles')
-            ->values([
-                    'title' => ':title',
-                    'description' => ':description',
-                    'picture' => ':picture',
-                    'created_at' => ':created_at'
-                ]
-            )->setParameters([
-                'title' => $_POST['title'],
-                'description' => $_POST['description'],
-                'picture' => '123',
-                'created_at' => Carbon::now()
-            ])->executeQuery();
+        $article = new Article(
+            $_POST['title'],
+            $_POST['description'],
+            'https://t3.ftcdn.net/jpg/03/45/05/92/360_F_345059232_CPieT8RIWOUk4JqBkkWkIETYAkmz2b75.jpg',
+            Carbon::now()
+        );
+
+        $service = new StoreArticleService();
+
+        $service->execute($article);
 
         return new RedirectResponse('/articles');
     }
 
     public function edit(int $id): ViewResponse
     {
-        $data = $this->database->createQueryBuilder()
-            ->select('*')
-            ->from('articles')
-            ->where('id = :id')
-            ->setParameter('id', $id)
-            ->fetchAssociative();
-        $article = new Article(
-            $data['title'],
-            $data['description'],
-            $data['picture'],
-            $data['created_at'],
-            (int) $data['id'],
-            $data['updated_at']
-        );
+        $service = new ShowArticleService();
+        $article = $service->execute($id);
 
-        return new ViewResponse('articles/edit', ['article' => $article]);
+        return new ViewResponse('articles/edit', [
+            'article' => $article
+        ]);
     }
 
     public function update(int $id): RedirectResponse
     {
-        $updateTime = Carbon::now();
-        $this->database->createQueryBuilder()
-            ->update('articles')
-            ->set('title', ':title')
-            ->set('description', ':description')
-            ->set('picture', ':picture')
-            ->set('updated_at', ':updated_at')
-            ->where('id = :id')
-            ->setParameters([
-                'id' => $id,
-                'title' => $_POST['title'],
-                'description' => $_POST['description'],
-                'picture' => $_POST['image'],
-                'updated_at' => $updateTime->toDateTimeString(),
-            ])->executeQuery();
+        $service = new UpdateArticleService();
+
+        $service->execute(
+            $id,
+            $_POST['title'],
+            $_POST['description'],
+            $_POST['image']
+        );
 
         return new RedirectResponse('/articles');
     }
 
     public function delete(int $id): RedirectResponse
     {
-        $this->database->createQueryBuilder()
-            ->delete('articles')
-            ->where('id = :id')
-            ->setParameter('id', $id)
-            ->executeQuery();
+        $service = new DeleteArticleService();
+        $service->execute($id);
 
         return new RedirectResponse('/articles');
     }

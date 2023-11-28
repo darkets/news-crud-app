@@ -14,12 +14,12 @@ class Article
     private ?int $id;
 
     public function __construct(
-        string $title,
-        string $description,
-        string $picture,
-        string $createdAt,
-        ?int $id = null,
-        ?string $updatedAt = null
+        string         $title,
+        string         $description,
+        string         $picture,
+        \Carbon\Carbon $createdAt,
+        ?int           $id = null,
+        ?string        $updatedAt = null
     )
     {
         $this->title = $title;
@@ -58,5 +58,13 @@ class Article
     public function getUpdatedAt(): ?Carbon
     {
         return $this->updatedAt;
+    }
+
+    public function update(string $title, string $description, string $imageUrl)
+    {
+        $this->title = $title;
+        $this->description = $description;
+        $this->picture = $imageUrl;
+        $this->updatedAt = Carbon::now();
     }
 }
